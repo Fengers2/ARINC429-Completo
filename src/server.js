@@ -24,16 +24,22 @@ function validateValue(instrument, value) {
 function asyncRoute(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 }
+function includeBinaryWord(row) {
+  if (!row.arinc429) return { ...row, bits: null };
+  const value = Number.parseInt(row.arinc429, 16);
+  const bits = Number.isFinite(value) ? value.toString(2).padStart(32, '0') : null;
+  return { ...row, arinc429: bits, bits };
+}
 
 app.get('/api/instruments', (_req, res) => res.json(instruments.map(({ number, name, unit, min, max }) => ({ number, name, unit, min, max }))));
 app.get('/api/envios', asyncRoute(async (_req, res) => {
   const [rows] = await pool.query(`SELECT ${columns} FROM ${qTable} ORDER BY id DESC`);
-  res.json(rows);
+  res.json(rows.map(includeBinaryWord));
 }));
 app.get('/api/envios/:id', asyncRoute(async (req, res) => {
   const [rows] = await pool.execute(`SELECT ${columns} FROM ${qTable} WHERE id = ?`, [req.params.id]);
   if (!rows.length) return res.status(404).json({ error: 'Envío no encontrado.' });
-  res.json(rows[0]);
+  res.json(includeBinaryWord(rows[0]));
 }));
 
 app.post('/api/envios', asyncRoute(async (req, res) => {
@@ -53,7 +59,7 @@ app.post('/api/envios', asyncRoute(async (req, res) => {
   catch (error) { delivery = { status: 'error', message: error.message }; }
   await pool.execute(`UPDATE ${qTable} SET serial_status = ? WHERE id = ?`, [delivery.status, result.insertId]);
   const [rows] = await pool.execute(`SELECT ${columns} FROM ${qTable} WHERE id = ?`, [result.insertId]);
-  res.status(201).json({ ...rows[0], bits: encoded.bits, deliveryMessage: delivery.message });
+  res.status(201).json({ ...includeBinaryWord(rows[0]), deliveryMessage: delivery.message });
 }));
 
 app.put('/api/envios/:id', asyncRoute(async (req, res) => {
@@ -69,7 +75,7 @@ app.put('/api/envios/:id', asyncRoute(async (req, res) => {
   );
   if (!result.affectedRows) return res.status(404).json({ error: 'Envío no encontrado.' });
   const [rows] = await pool.execute(`SELECT ${columns} FROM ${qTable} WHERE id = ?`, [req.params.id]);
-  res.json({ ...rows[0], bits: encoded.bits, deliveryMessage: 'Actualizado. Sin transmitir; usa el botón Enviar si corresponde.' });
+  res.json({ ...includeBinaryWord(rows[0]), deliveryMessage: 'Actualizado. Sin transmitir; usa el botón Enviar si corresponde.' });
 }));
 
 app.delete('/api/envios/:id', asyncRoute(async (req, res) => {
@@ -91,7 +97,7 @@ app.post('/api/envios/:id/transmitir', asyncRoute(async (req, res) => {
   } catch (error) { delivery = { status: 'error', message: error.message }; }
   await pool.execute(`UPDATE ${qTable} SET serial_status = ? WHERE id = ?`, [delivery.status, req.params.id]);
   const [updated] = await pool.execute(`SELECT ${columns} FROM ${qTable} WHERE id = ?`, [req.params.id]);
-  res.json({ ...updated[0], deliveryMessage: delivery.message });
+  res.json({ ...includeBinaryWord(updated[0]), deliveryMessage: delivery.message });
 }));
 
 app.use((error, _req, res, _next) => {
@@ -100,6 +106,7 @@ app.use((error, _req, res, _next) => {
 });
 
 const port = Number(process.env.PORT || 3000);
-initializeDatabase().then(() => app.listen(port, () => console.log(`ARINC429 listo en http://localhost:${port}`)))
-  .catch((error) => { console.error('No se pudo inicializar MySQL:', error.message); process.exitCode = 1; })
-  .finally(() => { if (process.exitCode) pool.end(); });
+app.listen(port, () => console.log(`ARINC429 disponible en http://localhost:${port}`));
+initializeDatabase()
+  .then(() => console.log('Conexión MySQL lista.'))
+  .catch((error) => console.error(`MySQL no disponible: ${error.message}. Revise DB_USER, DB_PASSWORD y DB_NAME en .env.`));

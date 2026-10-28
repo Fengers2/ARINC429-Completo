@@ -58,6 +58,7 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 }
 function formatValue(value) { return Number(value).toLocaleString('es-ES', { maximumFractionDigits: 6 }); }
+function formatBits(bits) { return bits ? bits.match(/.{1,4}/g).join(' ') : '—'; }
 function statusText(status) { return ({ enviado: 'ENVIADO', error: 'ERROR', no_enviado: 'PENDIENTE' })[status] || escapeHtml(status); }
 async function loadEnvios() {
   const rows = await api('/api/envios');
@@ -67,7 +68,7 @@ async function loadEnvios() {
   $('#envios-body').innerHTML = rows.length ? rows.map((row) => `<tr>
     <td class="instrument-cell">${escapeHtml(row.instrument_name)}<span class="subcell">Instrumento #${escapeHtml(row.instrument_number)}</span></td>
     <td>${formatValue(row.value)}<span class="subcell">${escapeHtml((instruments.find((item) => item.number === Number(row.instrument_number)) || {}).unit || '')}</span></td>
-    <td class="mono">${escapeHtml(row.arinc429 || '—')}</td>
+    <td class="mono binary-word" title="Palabra completa: ${escapeHtml(row.bits || 'no disponible')}">${escapeHtml(formatBits(row.bits))}</td>
     <td><span class="status ${escapeHtml(row.serial_status)}">${statusText(row.serial_status)}</span></td>
     <td><div class="actions"><button class="icon-btn" data-action="transmit" data-id="${row.id}" title="Enviar por serial" aria-label="Enviar">➤</button><button class="icon-btn" data-action="edit" data-id="${row.id}" title="Editar" aria-label="Editar">✎</button><button class="icon-btn delete" data-action="delete" data-id="${row.id}" title="Eliminar" aria-label="Eliminar">×</button></div></td>
   </tr>`).join('') : '<tr><td class="empty" colspan="5">Aún no hay envíos. Crea el primero con el formulario.</td></tr>';
@@ -94,9 +95,10 @@ form.addEventListener('submit', async (event) => {
       method: editingId ? 'PUT' : 'POST',
       body: JSON.stringify({ instrumentNumber: instrument.number, value })
     });
-    $('#word-preview').textContent = result.bits ? result.bits.match(/.{1,4}/g).join(' ') : 'Palabra guardada';
+    const generatedBits = formatBits(result.bits);
     notify(`${editingId ? 'Envío actualizado.' : 'Envío creado.'} ${result.deliveryMessage || ''}`);
     resetForm();
+    $('#word-preview').textContent = generatedBits;
     await loadEnvios();
   } catch (error) { notify(error.message, true); }
   finally { button.disabled = false; }
@@ -119,7 +121,7 @@ $('#envios-body').addEventListener('click', async (event) => {
       $('#form-title').textContent = `Editar envío #${id}`;
       $('#save-btn').innerHTML = 'Guardar cambios';
       $('#cancel-edit').classList.remove('hidden');
-      $('#word-preview').textContent = row.arinc429 || 'Se recalculará al guardar';
+      $('#word-preview').textContent = row.bits ? formatBits(row.bits) : 'Se recalculará al guardar';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (action === 'delete') {
       deleteId = id;
