@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07141d">
+  <title>ARINC 429 · Centro de envíos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#"><span class="brand-mark">A<span>4</span></span><span>ENGERS<small>AVIONICS SYSTEMS</small></span></a>
+      <div class="nav-label">OPERACIÓN</div>
+      <a class="nav-item active" href="#"><span>▤</span> Envíos ARINC <span class="nav-count" id="nav-count">0</span></a>
+      <div class="sidebar-foot"><span class="pulse"></span><span id="connection-label">Conectando a MySQL…</span></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div><div class="eyebrow">SISTEMA DE TRANSMISIÓN <span>/</span> GESTIÓN</div><h1>Envíos <span>ARINC 429</span></h1></div><div class="top-status"><i></i> SISTEMA LOCAL</div></header>
+      <section class="intro"><div><h2>Centro de envíos</h2><p>Configura y administra palabras ARINC429 de tus instrumentos.</p></div><div class="intro-chip"><span>WORD LENGTH</span><strong>32 <small>BIT</small></strong></div></section>
+      <div class="notice"><span class="notice-icon">!</span><p><strong>Transmisión de prueba.</strong> La brújula de ejemplo (0–360°) no tiene etiqueta/resolución verificadas para tu ICD. El envío serial está desactivado; configura un adaptador ARINC429 antes de transmitir.</p></div>
+      <div class="content-grid">
+        <section class="panel form-panel">
+          <div class="panel-heading"><div class="step">01</div><div><h3 id="form-title">Crear envío</h3><p>Selecciona un instrumento y define un valor.</p></div></div>
+          <form id="envio-form">
+            <label for="instrument">Instrumento</label><div class="select-wrap"><select id="instrument" required><option value="">Cargando instrumentos…</option></select><span>⌄</span></div>
+            <div class="range-row"><label>Rango permitido</label><span id="range-hint">Selecciona un instrumento</span></div>
+            <label for="value">Valor <span id="unit-label"></span></label><div class="value-wrap"><input id="value" type="number" step="any" placeholder="0.000" required><span id="value-unit">—</span></div>
+            <div class="range-track"><span id="range-fill"></span></div><div class="range-ends"><span id="range-min">—</span><span id="range-max">—</span></div>
+            <div class="word-preview"><div class="preview-head"><span>PALABRA ARINC429</span><span>32 BITS</span></div><div class="bit-row"><span>LABEL</span><span>SDI</span><span>DATA / SIGN</span><span>SSM</span><span>P</span></div><div class="preview-bits" id="word-preview">···· ···· ···· ···· ···· ···· ···· ····</div><div class="preview-caption">La palabra se genera al crear o actualizar el envío.</div></div>
+            <div class="form-actions"><button class="btn-primary" type="submit" id="save-btn"><span>＋</span> Crear envío</button><button class="btn-quiet hidden" type="button" id="cancel-edit">Cancelar</button></div>
+          </form>
+        </section>
+        <section class="panel list-panel"><div class="list-heading"><div><div class="section-overline">REGISTRO</div><h3>Historial de envíos</h3></div><button class="refresh" id="refresh-btn" title="Actualizar">↻</button></div><div class="table-scroll"><table><thead><tr><th>INSTRUMENTO</th><th>VALOR</th><th>PALABRA</th><th>ESTADO</th><th>ACCIONES</th></tr></thead><tbody id="envios-body"><tr><td class="empty" colspan="5">Cargando envíos…</td></tr></tbody></table></div><div class="list-foot"><span id="record-count">0 registros</span><span>ORDENADO POR FECHA · DESC</span></div></section>
+      </div>
+      <footer>ARINC 429 · SISTEMA DE GESTIÓN DE ENVÍOS <span>·</span> TRANSMISIÓN CONTROLADA</footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="delete-dialog"><form method="dialog"><div class="dialog-icon">!</div><h3>Eliminar envío</h3><p>Esta acción no se puede deshacer. ¿Deseas continuar?</p><div class="dialog-actions"><button class="btn-quiet" value="cancel">Cancelar</button><button class="btn-danger" id="confirm-delete" value="confirm">Eliminar</button></div></form></dialog>
+</body>
+</html>
