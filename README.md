@@ -1,26 +1,25 @@
 # ARINC429 · Gestión de envíos
 
-Aplicación web Node.js/Express con CRUD de envíos en MySQL, validación de rango por instrumento, generación de palabras ARINC429 de 32 bits (BNR/paridad impar) e integración serial opcional.
+Aplicación web Node.js/Express con CRUD de envíos, alta de instrumentos, validación de rango y generación de palabras ARINC429 de 32 bits (BNR/paridad impar). Usa un archivo JSON local persistente y no necesita MySQL para funcionar. La transmisión serial es opcional y siempre manual.
 
 ## Requisitos
 
-- Node.js 20 o superior y npm.
-- MySQL con la base `Arinc_Engers` y una tabla `envios` que contenga estas columnas exactamente: `numero del instrumento`, `nombre del instrumento` y `valor`.
+- Node.js 18 o superior y npm.
 - Para la transmisión: adaptador/interfaz transmisora ARINC429 compatible con el protocolo serial que expone esta aplicación.
 
-La aplicación crea `envios` si no existe; si existe, añade `id`, `arinc429`, `serial_status`, `created_at` y `updated_at` cuando faltan. El usuario MySQL necesita permisos para crear/alterar la tabla. Antes de usar una tabla real, haga una copia de seguridad.
+Los datos se guardan por defecto en `data/arinc429.json`. Se puede cambiar la ubicación con `DATA_FILE`.
 
 ## Puesta en marcha
 
-1. Copie `.env.example` a `.env` y ajuste la conexión MySQL. No comparta ni registre credenciales.
+1. Opcionalmente, copie `.env.example` a `.env` y ajuste `DATA_FILE` o `PORT`.
 2. Instale dependencias con `npm install`.
 3. Inicie con `npm start` y abra `http://localhost:3000`.
 
 ## Instrumentos y codificación
 
-El catálogo está en `src/instruments.js`. El único registro inicial es una brújula de ejemplo con rango 0–360°. **Su etiqueta ARINC 014, formato, resolución, SDI y SSM son valores ilustrativos, no validados**: confirme y configure la definición en el ICD (Interface Control Document) del equipo antes de usarla en un sistema real. Los instrumentos no especificados no se deben inventar.
+El catálogo persistente se muestra y amplía desde la sección Instrumentos de la página. El archivo `src/instruments.js` solo aporta el registro inicial cuando el catálogo está vacío: una brújula de ejemplo con rango 0–360°. **Su etiqueta ARINC 014, formato, resolución, SDI y SSM son valores ilustrativos, no validados**. Al agregar un instrumento, introduzca su rango y parámetros BNR según el ICD (Interface Control Document) real. Los datos ingresados quedan marcados como pendientes de verificación; no deben usarse en equipos operativos sin revisión.
 
-Se acepta BNR únicamente. El codificador construye una palabra de 32 bits con etiqueta, SDI, magnitud BNR, signo, SSM y paridad impar. La conversión de bytes y el framing pueden depender del adaptador; valide el orden de bits y el formato con el fabricante. No se transmite automáticamente al editar: crear genera el registro y trata de transmitir; el botón de envío reintenta explícitamente. Desactivado por defecto.
+Se acepta BNR únicamente. El codificador construye una palabra de 32 bits con etiqueta, SDI, magnitud BNR, signo, SSM y paridad impar. La página muestra la vista previa en binario y guarda en cada envío el valor junto con los límites vigentes del instrumento. La conversión de bytes y el framing pueden depender del adaptador; valide el orden de bits y el formato con el fabricante. Crear, editar y previsualizar no transmiten. El botón Enviar es una acción explícita y el puerto serial está desactivado por defecto.
 
 ## Puerto serial / seguridad operacional
 
@@ -29,6 +28,8 @@ Por defecto `SERIAL_ENABLED=false`. No es suficiente conectar un puerto RS-232/U
 ## API
 
 - `GET /api/instruments`
+- `POST /api/instruments` (alta de instrumento con `number`, `name`, `unit`, `min`, `max`, `labelOctal`, `lsb`, `sdi` y `ssm`)
+- `POST /api/arinc429/preview` (`instrumentNumber`, `value`)
 - `GET /api/envios`, `GET /api/envios/:id`
 - `POST /api/envios` (`instrumentNumber`, `value`)
 - `PUT /api/envios/:id` (`instrumentNumber`, `value`)

@@ -80,6 +80,16 @@ form label { display: block; color: #a7bac2; font-size: 11px; margin: 0 0 7px; }
 .btn-quiet { background: #172a34; color: #adc0c8; border: 1px solid #29414d; }
 .hidden { display: none !important; }
 .list-panel { padding: 20px 0 0; }
+.instruments-panel { margin-top: 17px; padding: 20px 0 0; }
+.catalog-description { color: var(--muted); font-size: 11px; margin: 5px 0 0; }
+.instrument-form { padding: 0 19px 18px; }
+.instrument-fields { display: grid; grid-template-columns: repeat(5, minmax(110px, 1fr)); gap: 12px; }
+.instrument-fields label { display: block; color: #a7bac2; font-size: 10px; margin: 0 0 6px; }
+.instrument-fields input { width: 100%; height: 36px; border: 1px solid #29414d; border-radius: 5px; background: #091720; color: var(--text); padding: 0 9px; font: 11px 'DM Mono', monospace; outline: none; }
+.instrument-fields input:focus { border-color: var(--accent); }
+.instrument-submit { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 13px; }
+.instrument-submit p { max-width: 700px; color: var(--muted); font-size: 10px; line-height: 1.5; margin: 0; }
+.instrument-submit .btn-primary { flex: 0 0 auto; }
 .list-heading { display: flex; align-items: center; justify-content: space-between; padding: 0 19px 17px; }
 .section-overline { font-size: 9px; margin-bottom: 5px; }
 .list-heading h3 { font-size: 14px; }
@@ -114,7 +124,7 @@ dialog h3 { margin: 14px 0 6px; }
 dialog p { color: var(--muted); font-size: 12px; line-height: 1.6; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 .btn-danger { background: #a94444; color: white; }
-@media (max-width: 1050px) { .main { padding: 28px 25px; } .content-grid { grid-template-columns: 1fr; } .form-panel { max-width: none; } }
+@media (max-width: 1050px) { .main { padding: 28px 25px; } .content-grid { grid-template-columns: 1fr; } .form-panel { max-width: none; } .instrument-fields { grid-template-columns: repeat(3, minmax(110px, 1fr)); } }
 @media (max-width: 650px) {
 	.shell { grid-template-columns: 1fr; }
 	.sidebar { min-height: auto; padding: 13px 17px; border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; align-items: center; }
@@ -129,5 +139,10 @@ dialog p { color: var(--muted); font-size: 12px; line-height: 1.6; }
 	.table-scroll { max-height: 430px; }
 	.list-foot { font-size: 8px; }
 	.content-grid { gap: 12px; }
+	.instrument-fields { grid-template-columns: repeat(2, minmax(110px, 1fr)); }
+	.instrument-submit { align-items: stretch; flex-direction: column; }
+	.instrument-submit .btn-primary { width: 100%; }
+	.instrument-form { padding-right: 12px; padding-left: 12px; }
+	.instruments-panel .list-heading { padding-right: 12px; padding-left: 12px; }
 	footer { font-size: 8px; }
 }
